@@ -23,7 +23,7 @@ local isInitialized = false
 	This is useful for when you have modules that depend on each other and need to be initialized in a specific order.
 	You can enable/disable debug mode to see the load order of your modules.
 
-	`Any module that you have can be loaded with Syscore!`
+	`Any module that you have can be loaded with Syscore! No special requirements needed inside your modules.`
 
 	If you have a Init() method in your module, Syscore will call it when initializing your module.
 	If you do not have an Init() method, Syscore will skip it.
