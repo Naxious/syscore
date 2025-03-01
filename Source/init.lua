@@ -58,35 +58,13 @@ local isInitialized = false
 
     return module
     ```
-
-    Here is an example of how to use Syscore to initialize one of your modules:
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    local module = require(path.to.module)
-
-    Syscore:AddModule(module)
-    Syscore:Start()
-    ```
-
+    
     Here is an example of how to use Syscore to initialize a folder of modules:
     ```lua
     local Syscore = require(path.to.Syscore)
     local folder = game:GetService("ReplicatedStorage").Modules
 
     Syscore:AddFolderOfModules(folder)
-    Syscore:Start()
-    ```
-
-    Here is an example of how to use Syscore to initialize a table of modules:
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    local modules = {
-        require(path.to.module1),
-        require(path.to.module2),
-        require(path.to.module3),
-    }
-
-    Syscore:AddTableOfModules(modules)
     Syscore:Start()
     ```
 
@@ -194,7 +172,7 @@ local function ModuleWithSameNameExists(module: ModuleScript)
 end
 
 local function AddSystem(module: ModuleScript)
-	if Syscore.RuntimeStart > 0 then
+	if isInitialized then
 		warn(`[Syscore] Cannot add {module.Name} after Syscore has started.`)
 		return
 	end
@@ -223,10 +201,7 @@ local function AddSystem(module: ModuleScript)
 end
 
 --[=[
-	Add a folder that contains children that are systems to be initialized.
-	Note that modules without a priority are processed last.
-
-	@param folder Folder should contain children that are modules.
+	Requires all modules that are direct children of the folder.
 ]=]
 function Syscore:AddFolderOfModules(folder: Folder)
 	assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
@@ -243,9 +218,13 @@ end
 
 --[=[
     Add a module to be initialized.
-    Note that modules without a priority are processed last.
 
-    @param module Module to be initialized.
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    local module = require(path.to.module)
+
+    Syscore:AddModule(module)
+    ```
 ]=]
 function Syscore:AddModule(module: ModuleScript)
 	assert(module and module:IsA("ModuleScript"), `[Syscore] {module.Name} is not a ModuleScript.`)
@@ -259,10 +238,18 @@ function Syscore:AddModule(module: ModuleScript)
 end
 
 --[=[
-	Add a table of systems to be initialized.
-	Note that systems without a priority are processed last.
+    Add a table of modules to be initialized.
 
-	@param systems Table of modules.
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    local modules = {
+        require(path.to.module1),
+        require(path.to.module2),
+        require(path.to.module3),
+    }
+
+    Syscore:AddTableOfModules(modules)
+    ```
 ]=]
 function Syscore:AddTableOfModules(systems: { ModuleScript })
 	if type(systems) ~= "table" then
@@ -280,11 +267,15 @@ function Syscore:AddTableOfModules(systems: { ModuleScript })
 end
 
 --[=[
-	Call only after you've added any folders containing modules that you wish to become systems.
+	Initializes all modules based on their priority.
+    Returns a table of errors that occured during initialization.
 
-	@return table -- returns a table of strings(errors) thrown during initialization.
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    Syscore:Start()
+    ```
 ]=]
-function Syscore:Start()
+function Syscore:Start(): { [string]: { { system: Syscore, response: string } } }
 	local runtimeStart = os.clock()
 
 	prioritySortAddedModules()
