@@ -64,8 +64,8 @@ local isInitialized = false
 	local Syscore = require(path.to.Syscore)
 	local folder = game:GetService("ReplicatedStorage").Modules
 
-	Syscore:AddFolderOfModules(folder)
-	Syscore:Start()
+	Syscore.AddFolderOfModules(folder)
+	Syscore.Start()
 	```
 
 	:::note
@@ -97,6 +97,8 @@ local isInitialized = false
 	This is useful for debugging purposes.
 	```lua
 	local Syscore = require(path.to.Syscore)
+	Syscore.AddModule(module)
+	Syscore.Start()
 	print(Syscore.LoadTime)
 	```
 ]=]
@@ -221,7 +223,7 @@ end
 	local Syscore = require(path.to.Syscore)
 	local folder = game:GetService("ReplicatedStorage").Modules
 
-	Syscore:AddFolderOfModules(folder)
+	Syscore.AddFolderOfModules(folder)
 	```
 ]=]
 function Syscore.AddFolderOfModules(folder: Folder)
@@ -244,7 +246,7 @@ end
 	local Syscore = require(path.to.Syscore)
 	local module = require(path.to.module)
 
-	Syscore:AddModule(module)
+	Syscore.AddModule(module)
 	```
 ]=]
 function Syscore.AddModule(module: ModuleScript)
@@ -269,7 +271,7 @@ end
 		require(path.to.module3),
 	}
 
-	Syscore:AddTableOfModules(modules)
+	Syscore.AddTableOfModules(modules)
 	```
 ]=]
 function Syscore.AddTableOfModules(modules: { ModuleScript })
@@ -295,8 +297,8 @@ end
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 	local Syscore = require(path.to.Syscore)
-	Syscore:AddFolderOfModules(ReplicatedStorage.ModulesFolder)
-	Syscore:Start()
+	Syscore.AddFolderOfModules(ReplicatedStorage.ModulesFolder)
+	Syscore.Start()
 	```
 ]=]
 function Syscore.Start(): { [string]: { { sysModule: Syscore, response: string } } }
