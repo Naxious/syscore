@@ -1,0 +1,23 @@
+name: Update Naxdocs
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+    update-docs:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Docs Dispatch
+              uses: peter-evans/repository-dispatch@v3
+              with:
+                token: ${{ secrets.PAT }}
+                repository: Naxious/naxdocs
+                event-type: update-reference-docs
+                client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+# Remember to setup the PAT in the repository secrets when adding this to any other repository.

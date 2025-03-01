@@ -1,0 +1,7 @@
+{
+    "name": "syscore",
+    "emitLegacyScripts": false,
+    "tree": {
+        "$path": "Source"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "syscore",
+    "emitLegacyScripts": false,
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "$ignoreUnknownInstances": true,
+            "Syscore": {
+                "$path": "Source"
+            }   
+        }
+    }
+}
