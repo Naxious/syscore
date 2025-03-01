@@ -58,7 +58,7 @@ local isInitialized = false
 
     return module
     ```
-    
+
     Here is an example of how to use Syscore to initialize a folder of modules:
     ```lua
     local Syscore = require(path.to.Syscore)
@@ -201,7 +201,14 @@ local function AddSystem(module: ModuleScript)
 end
 
 --[=[
-	Requires all modules that are direct children of the folder.
+    Requires all modules that are direct children of the folder.
+
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    local folder = game:GetService("ReplicatedStorage").Modules
+
+    Syscore:AddFolderOfModules(folder)
+    ```
 ]=]
 function Syscore:AddFolderOfModules(folder: Folder)
 	assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
@@ -271,7 +278,10 @@ end
     Returns a table of errors that occured during initialization.
 
     ```lua
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
     local Syscore = require(path.to.Syscore)
+    Syscore:AddFolderOfModules(ReplicatedStorage.ModulesFolder)
     Syscore:Start()
     ```
 ]=]
