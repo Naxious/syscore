@@ -17,7 +17,7 @@ local isInitialized = false
 --[=[
 	@class Syscore
 
-	- Wally Package: [Syscore](https://wally.run/package/naxious)
+	- Wally Package: [Syscore](https://wally.run/package/naxious/syscore)
 
 	Syscore is a module that allows you to easily manage the initialization of your modules in a specific order.
 	This is useful for when you have modules that depend on each other and need to be initialized in a specific order.
