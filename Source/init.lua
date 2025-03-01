@@ -3,11 +3,6 @@ local RunService = game:GetService("RunService")
 local INIT_FUNCTION_NAME = "Init"
 local METHOD_TIMEOUT_SECONDS = 5
 
---[=[
-    @within Syscore
-    @interface Syscore
-    .
-]=]
 export type Syscore = {
 	Icon: string?,
 	Name: string,
