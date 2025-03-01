@@ -10,8 +10,8 @@ export type Syscore = {
 	[any]: any,
 }
 
-local addedModules: { { system: Syscore, failedOnce: boolean } } = {}
-local errors: { [string]: { { system: Syscore, response: string } } } = {}
+local addedModules: { { sysModule: Syscore, failedOnce: boolean } } = {}
+local errors: { [string]: { { sysModule: Syscore, response: string } } } = {}
 local isInitialized = false
 
 --[=[
@@ -94,14 +94,14 @@ local Syscore = {
 
 local function prioritySortAddedModules()
 	table.sort(addedModules, function(a, b)
-		return a.system.Priority < b.system.Priority
+		return a.sysModule.Priority < b.sysModule.Priority
 	end)
 
 	if Syscore.ShowLoadOrder then
 		warn(`[Syscore] {RunService:IsServer() and "Server" or "Client"} load order:`)
 		for loadOrder, module in addedModules do
-			local iconString = module.system.Icon and `{module.system.Icon} ` or "🔴"
-			warn(`{loadOrder} - [{iconString}{module.system.Name}] :: {module.system.Priority}`)
+			local iconString = module.sysModule.Icon and `{module.sysModule.Icon} ` or "🔴"
+			warn(`{loadOrder} - [{iconString}{module.sysModule.Name}] :: {module.sysModule.Priority}`)
 		end
 	end
 end
@@ -121,8 +121,8 @@ local function initializeSyscore(methodName: string)
 		local success, errorMessage = pcall(function()
 			local yieldCoroutine = coroutine.create(function()
 				task.spawn(function()
-					if typeof(data.system[methodName]) == "function" then
-						data.system[methodName](data.system)
+					if typeof(data.sysModule[methodName]) == "function" then
+						data.sysModule[methodName](data.sysModule)
 					end
 				end)
 			end)
@@ -139,7 +139,7 @@ local function initializeSyscore(methodName: string)
 
 				if yieldTime > METHOD_TIMEOUT_SECONDS then
 					warn(
-						`[Syscore] Module {data.system.Name}:{methodName} took more than {METHOD_TIMEOUT_SECONDS} seconds to initialize.`
+						`[Syscore] Module {data.sysModule.Name}:{methodName} took more than {METHOD_TIMEOUT_SECONDS} seconds to initialize.`
 					)
 					data.failedOnce = true
 					return
@@ -152,9 +152,9 @@ local function initializeSyscore(methodName: string)
 		end)
 
 		if not success then
-			table.insert(errors[methodName], { system = data.system, response = errorMessage })
+			table.insert(errors[methodName], { sysModule = data.sysModule, response = errorMessage })
 			warn(
-				`[Syscore] Module {data.system.Name}:{methodName} failed to initialize: {errorMessage}\n{debug.traceback()}`
+				`[Syscore] Module {data.sysModule.Name}:{methodName} failed to initialize: {errorMessage}\n{debug.traceback()}`
 			)
 		end
 	end
@@ -162,8 +162,8 @@ end
 
 local function ModuleWithSameNameExists(module: ModuleScript)
 	for _, data in addedModules do
-		if data.system.Name == module.Name or data.system.Name == module:GetFullName() then
-			warn(`[Syscore] {data.system.Name} is already in the systems list.`)
+		if data.sysModule.Name == module.Name or data.sysModule.Name == module:GetFullName() then
+			warn(`[Syscore] {data.sysModule.Name} is already in the sysModules list.`)
 			return true
 		end
 	end
@@ -171,7 +171,7 @@ local function ModuleWithSameNameExists(module: ModuleScript)
 	return false
 end
 
-local function AddSystem(module: ModuleScript)
+local function addModule(module: ModuleScript)
 	if isInitialized then
 		warn(`[Syscore] Cannot add {module.Name} after Syscore has started.`)
 		return
@@ -192,7 +192,7 @@ local function AddSystem(module: ModuleScript)
 		newModule.Name = newModule.Name or `{module:GetFullName()}`
 		newModule.Priority = newModule.Priority or math.huge
 
-		table.insert(addedModules, { system = newModule, failedOnce = false, module = module })
+		table.insert(addedModules, { sysModule = newModule, failedOnce = false})
 	end)
 
 	if not success then
@@ -219,7 +219,7 @@ function Syscore:AddFolderOfModules(folder: Folder)
 	end
 
 	for _, module in folder:GetChildren() do
-		AddSystem(module)
+		addModule(module)
 	end
 end
 
@@ -241,7 +241,7 @@ function Syscore:AddModule(module: ModuleScript)
 		return
 	end
 
-	AddSystem(module)
+	addModule(module)
 end
 
 --[=[
@@ -258,18 +258,18 @@ end
 	Syscore:AddTableOfModules(modules)
 	```
 ]=]
-function Syscore:AddTableOfModules(systems: { ModuleScript })
-	if type(systems) ~= "table" then
-		error(`[Syscore] {systems} is not a table.`)
+function Syscore:AddTableOfModules(modules: { ModuleScript })
+	if type(modules) ~= "table" then
+		error(`[Syscore] {modules} is not a table.`)
 	end
 
 	if isInitialized then
-		warn(`[Syscore] Cannot add {#systems} after Syscore has started.`)
+		warn(`[Syscore] Cannot add {#modules} after Syscore has started.`)
 		return
 	end
 
-	for _, systemModule in systems do
-		AddSystem(systemModule)
+	for _, systemModule in modules do
+		addModule(systemModule)
 	end
 end
 
@@ -285,7 +285,7 @@ end
 	Syscore:Start()
 	```
 ]=]
-function Syscore:Start(): { [string]: { { system: Syscore, response: string } } }
+function Syscore:Start(): { [string]: { { sysModule: Syscore, response: string } } }
 	local runtimeStart = os.clock()
 
 	prioritySortAddedModules()
@@ -295,7 +295,7 @@ function Syscore:Start(): { [string]: { { system: Syscore, response: string } } 
 	for _, methodErrorGroup in errors do
 		if #methodErrorGroup > 0 then
 			for methodName, errorMessage in methodErrorGroup do
-				warn(`[Syscore] {errorMessage.system.Name}:{methodName} failed to initialize: {errorMessage.response}`)
+				warn(`[Syscore] {errorMessage.sysModule.Name}:{methodName} failed to initialize: {errorMessage.response}`)
 			end
 		end
 	end
