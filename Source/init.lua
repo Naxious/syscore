@@ -95,16 +95,15 @@ local function initializeSyscore(methodName: string)
 	end
 end
 
-local function ModuleWithSameNameExists()
-	local systemNames = {}
-
+local function ModuleWithSameNameExists(module: ModuleScript)
 	for _, data in addedModules do
-		if systemNames[data.system.Name] then
+		if data.system.Name == module.Name  or data.system.Name == module:GetFullName() then
 			warn(`[Syscore] {data.system.Name} is already in the systems list.`)
+			return true
 		end
-
-		systemNames[data.system.Name] = true
 	end
+	
+	return false
 end
 
 local function AddSystem(module: ModuleScript)
@@ -117,8 +116,7 @@ local function AddSystem(module: ModuleScript)
 		return
 	end
 
-	if ModuleWithSameNameExists() then
-		warn(`[Syscore] {module.Name} is already in the systems list. Are you double Loading!?`)
+	if ModuleWithSameNameExists(module) then
 		return
 	end
 
@@ -143,15 +141,34 @@ end
 
 	@param folder Folder should contain children that are modules.
 ]=]
-function Syscore:AddFolderOfModules(instance: Instance)
+function Syscore:AddFolderOfModules(folder: Folder)
+    assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
+
 	if Syscore.RuntimeStart > 0 then
-		warn(`[Syscore] Cannot add {instance.Name} after Syscore has started.`)
+		warn(`[Syscore] Cannot add {folder.Name} after Syscore has started.`)
 		return
 	end
 
-	for _, module in instance:GetChildren() do
+	for _, module in folder:GetChildren() do
 		AddSystem(module)
 	end
+end
+
+--[=[
+    Add a module to be initialized.
+    Note that modules without a priority are processed last.
+
+    @param module Module to be initialized.
+]=]
+function Syscore:AddModule(module: ModuleScript)
+    assert(module and module:IsA("ModuleScript"), `[Syscore] {module.Name} is not a ModuleScript.`)
+
+    if Syscore.RuntimeStart > 0 then
+        warn(`[Syscore] Cannot add {module.Name} after Syscore has started.`)
+        return
+    end
+
+    AddSystem(module)
 end
 
 --[=[
@@ -161,6 +178,10 @@ end
 	@param systems Table of modules.
 ]=]
 function Syscore:AddTableOfModules(systems: { ModuleScript })
+    if type(systems) ~= "table" then
+        error(`[Syscore] {systems} is not a table.`)
+    end
+
 	if Syscore.RuntimeStart > 0 then
 		warn(`[Syscore] Cannot add {#systems} after Syscore has started.`)
 		return
