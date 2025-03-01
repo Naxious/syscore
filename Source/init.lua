@@ -274,7 +274,7 @@ function Syscore:AddTableOfModules(systems: { ModuleScript })
 end
 
 --[=[
-	Initializes all modules based on their priority.
+    Initializes all modules based on their priority.
     Returns a table of errors that occured during initialization.
 
     ```lua
