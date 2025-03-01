@@ -15,77 +15,77 @@ local errors: { [string]: { { system: Syscore, response: string } } } = {}
 local isInitialized = false
 
 --[=[
-    @class Syscore
+	@class Syscore
 
-    - Wally Package: [Syscore](https://wally.run/package/naxious)
+	- Wally Package: [Syscore](https://wally.run/package/naxious)
 
-    Syscore is a module that allows you to easily manage the initialization of your modules in a specific order.
-    This is useful for when you have modules that depend on each other and need to be initialized in a specific order.
-    You can enable/disable debug mode to see the load order of your modules.
+	Syscore is a module that allows you to easily manage the initialization of your modules in a specific order.
+	This is useful for when you have modules that depend on each other and need to be initialized in a specific order.
+	You can enable/disable debug mode to see the load order of your modules.
 
-    `Any module that you have can be loaded with Syscore!`
+	`Any module that you have can be loaded with Syscore!`
 
-    If you have a Init() method in your module, Syscore will call it when initializing your module.
-    If you do not have an Init() method, Syscore will skip it.
+	If you have a Init() method in your module, Syscore will call it when initializing your module.
+	If you do not have an Init() method, Syscore will skip it.
 
-    You can also specfiy a Prioty, Name, and Icon for your module.
-    This is useful for debugging purposes.
+	You can also specfiy a Prioty, Name, and Icon for your module.
+	This is useful for debugging purposes.
 
-    Here is a few examples of how a module could look like with Syscore:
-    ```lua
-    local module = {
-        Name = "Module1",
-        Priority = 1,
-        Icon = "😁"
-    }
+	Here is a few examples of how a module could look like with Syscore:
+	```lua
+	local module = {
+		Name = "Module1",
+		Priority = 1,
+		Icon = "😁"
+	}
 
-    function module:Init()
-        print("Module1 initialized!")
-    end
+	function module:Init()
+		print("Module1 initialized!")
+	end
 
-    return module
-    ```
+	return module
+	```
 
-    ```lua
-    local module = {}
-    module.Priority = 2
+	```lua
+	local module = {}
+	module.Priority = 2
 
-    return module
-    ```
+	return module
+	```
 
-    ```lua
-    local module = {}
+	```lua
+	local module = {}
 
-    return module
-    ```
+	return module
+	```
 
-    Here is an example of how to use Syscore to initialize a folder of modules:
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    local folder = game:GetService("ReplicatedStorage").Modules
+	Here is an example of how to use Syscore to initialize a folder of modules:
+	```lua
+	local Syscore = require(path.to.Syscore)
+	local folder = game:GetService("ReplicatedStorage").Modules
 
-    Syscore:AddFolderOfModules(folder)
-    Syscore:Start()
-    ```
+	Syscore:AddFolderOfModules(folder)
+	Syscore:Start()
+	```
 
-    :::note
-        When using Syscore you will need to require it from a local script, or server script.
-        Once you have added all of your modules, you can call `Syscore:Start()` to initialize them.
-    :::
+	:::note
+		When using Syscore you will need to require it from a local script, or server script.
+		Once you have added all of your modules, you can call `Syscore:Start()` to initialize them.
+	:::
 ]=]
 
 --[=[
-    @within Syscore
-    @prop ShowLoadOrder boolean
-    @tag Boolean
+	@within Syscore
+	@prop ShowLoadOrder boolean
+	@tag Boolean
 
-    Determines whether or not to show the load order of your modules when initializing them.
-    This debug print is useful for debugging purposes.
-    Default, this is set to true.
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    Syscore.ShowLoadOrder = true
-    ```
+	Determines whether or not to show the load order of your modules when initializing them.
+	This debug print is useful for debugging purposes.
+	Default, this is set to true.
+	```lua
+	local Syscore = require(path.to.Syscore)
+	Syscore.ShowLoadOrder = true
+	```
 ]=]
 
 local Syscore = {
@@ -201,14 +201,14 @@ local function AddSystem(module: ModuleScript)
 end
 
 --[=[
-    Requires all modules that are direct children of the folder.
+	Requires all modules that are direct children of the folder.
 
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    local folder = game:GetService("ReplicatedStorage").Modules
+	```lua
+	local Syscore = require(path.to.Syscore)
+	local folder = game:GetService("ReplicatedStorage").Modules
 
-    Syscore:AddFolderOfModules(folder)
-    ```
+	Syscore:AddFolderOfModules(folder)
+	```
 ]=]
 function Syscore:AddFolderOfModules(folder: Folder)
 	assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
@@ -224,14 +224,14 @@ function Syscore:AddFolderOfModules(folder: Folder)
 end
 
 --[=[
-    Add a module to be initialized.
+	Add a module to be initialized.
 
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    local module = require(path.to.module)
+	```lua
+	local Syscore = require(path.to.Syscore)
+	local module = require(path.to.module)
 
-    Syscore:AddModule(module)
-    ```
+	Syscore:AddModule(module)
+	```
 ]=]
 function Syscore:AddModule(module: ModuleScript)
 	assert(module and module:IsA("ModuleScript"), `[Syscore] {module.Name} is not a ModuleScript.`)
@@ -245,18 +245,18 @@ function Syscore:AddModule(module: ModuleScript)
 end
 
 --[=[
-    Add a table of modules to be initialized.
+	Add a table of modules to be initialized.
 
-    ```lua
-    local Syscore = require(path.to.Syscore)
-    local modules = {
-        require(path.to.module1),
-        require(path.to.module2),
-        require(path.to.module3),
-    }
+	```lua
+	local Syscore = require(path.to.Syscore)
+	local modules = {
+		require(path.to.module1),
+		require(path.to.module2),
+		require(path.to.module3),
+	}
 
-    Syscore:AddTableOfModules(modules)
-    ```
+	Syscore:AddTableOfModules(modules)
+	```
 ]=]
 function Syscore:AddTableOfModules(systems: { ModuleScript })
 	if type(systems) ~= "table" then
@@ -274,16 +274,16 @@ function Syscore:AddTableOfModules(systems: { ModuleScript })
 end
 
 --[=[
-    Initializes all modules based on their priority.
-    Returns a table of errors that occured during initialization.
+	Initializes all modules based on their priority.
+	Returns a table of errors that occured during initialization.
 
-    ```lua
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	```lua
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-    local Syscore = require(path.to.Syscore)
-    Syscore:AddFolderOfModules(ReplicatedStorage.ModulesFolder)
-    Syscore:Start()
-    ```
+	local Syscore = require(path.to.Syscore)
+	Syscore:AddFolderOfModules(ReplicatedStorage.ModulesFolder)
+	Syscore:Start()
+	```
 ]=]
 function Syscore:Start(): { [string]: { { system: Syscore, response: string } } }
 	local runtimeStart = os.clock()
