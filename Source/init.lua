@@ -3,6 +3,10 @@ local RunService = game:GetService("RunService")
 local INIT_FUNCTION_NAME = "Init"
 local METHOD_TIMEOUT_SECONDS = 5
 
+--[=[
+    @within Syscore
+    @interface Syscore
+]=]
 export type Syscore = {
 	Icon: string?,
 	Name: string,
@@ -12,6 +16,7 @@ export type Syscore = {
 
 local addedModules: { { system: Syscore, failedOnce: boolean } } = {}
 local errors: { [string]: { { system: Syscore, response: string } } } = {}
+local isInitialized = false
 
 --[=[
     @class Syscore
@@ -21,11 +26,95 @@ local errors: { [string]: { { system: Syscore, response: string } } } = {}
     Syscore is a module that allows you to easily manage the initialization of your modules in a specific order.
     This is useful for when you have modules that depend on each other and need to be initialized in a specific order.
     You can enable/disable debug mode to see the load order of your modules.
+
+    `Any module that you have can be loaded with Syscore!`
+
+    If you have a Init() method in your module, Syscore will call it when initializing your module.
+    If you do not have an Init() method, Syscore will skip it.
+
+    You can also specfiy a Prioty, Name, and Icon for your module.
+    This is useful for debugging purposes.
+
+    Here is a few examples of how a module could look like with Syscore:
+    ```lua
+    local module = {
+        Name = "Module1",
+        Priority = 1,
+        Icon = "😁"
+    }
+
+    function module:Init()
+        print("Module1 initialized!")
+    end
+
+    return module
+    ```
+
+    ```lua
+    local module = {}
+    module.Priority = 2
+
+    return module
+    ```
+
+    ```lua
+    local module = {}
+
+    return module
+    ```
+
+    Here is an example of how to use Syscore to initialize one of your modules:
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    local module = require(path.to.module)
+
+    Syscore:AddModule(module)
+    Syscore:Start()
+    ```
+
+    Here is an example of how to use Syscore to initialize a folder of modules:
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    local folder = game:GetService("ReplicatedStorage").Modules
+
+    Syscore:AddFolderOfModules(folder)
+    Syscore:Start()
+    ```
+
+    Here is an example of how to use Syscore to initialize a table of modules:
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    local modules = {
+        require(path.to.module1),
+        require(path.to.module2),
+        require(path.to.module3),
+    }
+
+    Syscore:AddTableOfModules(modules)
+    Syscore:Start()
+    ```
+
+    :::note
+        When using Syscore you will need to require it from a local script, or server script.
+        Once you have added all of your modules, you can call `Syscore:Start()` to initialize them.
+    :::
 ]=]
 
-local Syscore = {}
-Syscore.ShowLoadOrder = true
-Syscore.RuntimeStart = 0
+--[=[
+    @within Syscore
+    @prop ShowLoadOrder: boolean
+    ShowLoadOrder is a boolean that determines whether or not to show the load order of your modules.
+    This is useful for debugging purposes.
+    Default, this is set to true.
+    ```lua
+    local Syscore = require(path.to.Syscore)
+    Syscore.ShowLoadOrder = true
+    ```
+]=]
+
+local Syscore = {
+	ShowLoadOrder = true,
+}
 
 local function prioritySortAddedModules()
 	table.sort(addedModules, function(a, b)
@@ -97,12 +186,12 @@ end
 
 local function ModuleWithSameNameExists(module: ModuleScript)
 	for _, data in addedModules do
-		if data.system.Name == module.Name  or data.system.Name == module:GetFullName() then
+		if data.system.Name == module.Name or data.system.Name == module:GetFullName() then
 			warn(`[Syscore] {data.system.Name} is already in the systems list.`)
 			return true
 		end
 	end
-	
+
 	return false
 end
 
@@ -142,9 +231,9 @@ end
 	@param folder Folder should contain children that are modules.
 ]=]
 function Syscore:AddFolderOfModules(folder: Folder)
-    assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
+	assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
 
-	if Syscore.RuntimeStart > 0 then
+	if isInitialized then
 		warn(`[Syscore] Cannot add {folder.Name} after Syscore has started.`)
 		return
 	end
@@ -161,14 +250,14 @@ end
     @param module Module to be initialized.
 ]=]
 function Syscore:AddModule(module: ModuleScript)
-    assert(module and module:IsA("ModuleScript"), `[Syscore] {module.Name} is not a ModuleScript.`)
+	assert(module and module:IsA("ModuleScript"), `[Syscore] {module.Name} is not a ModuleScript.`)
 
-    if Syscore.RuntimeStart > 0 then
-        warn(`[Syscore] Cannot add {module.Name} after Syscore has started.`)
-        return
-    end
+	if isInitialized then
+		warn(`[Syscore] Cannot add {module.Name} after Syscore has started.`)
+		return
+	end
 
-    AddSystem(module)
+	AddSystem(module)
 end
 
 --[=[
@@ -178,11 +267,11 @@ end
 	@param systems Table of modules.
 ]=]
 function Syscore:AddTableOfModules(systems: { ModuleScript })
-    if type(systems) ~= "table" then
-        error(`[Syscore] {systems} is not a table.`)
-    end
+	if type(systems) ~= "table" then
+		error(`[Syscore] {systems} is not a table.`)
+	end
 
-	if Syscore.RuntimeStart > 0 then
+	if isInitialized then
 		warn(`[Syscore] Cannot add {#systems} after Syscore has started.`)
 		return
 	end
@@ -195,10 +284,10 @@ end
 --[=[
 	Call only after you've added any folders containing modules that you wish to become systems.
 
-	@return table errors can return a table of errors thrown during initialization.
+	@return table -- returns a table of strings(errors) thrown during initialization.
 ]=]
 function Syscore:Start()
-	Syscore.RuntimeStart = os.clock()
+	local runtimeStart = os.clock()
 
 	prioritySortAddedModules()
 
@@ -213,9 +302,11 @@ function Syscore:Start()
 	end
 
 	if Syscore.ShowLoadOrder then
-		local loadTime = string.format("%.6f", os.clock() - Syscore.RuntimeStart)
+		local loadTime = string.format("%.6f", os.clock() - runtimeStart)
 		warn(`[Syscore] {RunService:IsClient() and "Client" or "Server"} Modules loaded in {loadTime} seconds`)
 	end
+
+	isInitialized = true
 
 	return errors
 end
