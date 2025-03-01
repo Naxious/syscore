@@ -88,8 +88,22 @@ local isInitialized = false
 	```
 ]=]
 
+--[=[
+	@within Syscore
+	@prop LoadTime number
+	@tag Number
+
+	The time it took to load all of the modules.
+	This is useful for debugging purposes.
+	```lua
+	local Syscore = require(path.to.Syscore)
+	print(Syscore.LoadTime)
+	```
+]=]
+
 local Syscore = {
 	ShowLoadOrder = true,
+	LoadTime = nil,
 }
 
 local function prioritySortAddedModules()
@@ -101,7 +115,7 @@ local function prioritySortAddedModules()
 		warn(`[Syscore] {RunService:IsServer() and "Server" or "Client"} load order:`)
 		for loadOrder, module in addedModules do
 			local iconString = module.sysModule.Icon and `{module.sysModule.Icon} ` or "🔴"
-			warn(`{loadOrder} - [{iconString}{module.sysModule.Name}] :: {module.sysModule.Priority}`)
+			warn(`[Syscore] {loadOrder} - [{iconString}{module.sysModule.Name}] :: {module.sysModule.Priority}`)
 		end
 	end
 end
@@ -210,7 +224,7 @@ end
 	Syscore:AddFolderOfModules(folder)
 	```
 ]=]
-function Syscore:AddFolderOfModules(folder: Folder)
+function Syscore.AddFolderOfModules(folder: Folder)
 	assert(folder and folder:IsA("Folder"), `[Syscore] {folder.Name} is not a folder.`)
 
 	if isInitialized then
@@ -233,7 +247,7 @@ end
 	Syscore:AddModule(module)
 	```
 ]=]
-function Syscore:AddModule(module: ModuleScript)
+function Syscore.AddModule(module: ModuleScript)
 	assert(module and module:IsA("ModuleScript"), `[Syscore] {module.Name} is not a ModuleScript.`)
 
 	if isInitialized then
@@ -258,7 +272,7 @@ end
 	Syscore:AddTableOfModules(modules)
 	```
 ]=]
-function Syscore:AddTableOfModules(modules: { ModuleScript })
+function Syscore.AddTableOfModules(modules: { ModuleScript })
 	if type(modules) ~= "table" then
 		error(`[Syscore] {modules} is not a table.`)
 	end
@@ -285,7 +299,7 @@ end
 	Syscore:Start()
 	```
 ]=]
-function Syscore:Start(): { [string]: { { sysModule: Syscore, response: string } } }
+function Syscore.Start(): { [string]: { { sysModule: Syscore, response: string } } }
 	local runtimeStart = os.clock()
 
 	prioritySortAddedModules()
@@ -300,9 +314,10 @@ function Syscore:Start(): { [string]: { { sysModule: Syscore, response: string }
 		end
 	end
 
+	local loadTime = os.clock() - runtimeStart
 	if Syscore.ShowLoadOrder then
-		local loadTime = string.format("%.6f", os.clock() - runtimeStart)
-		warn(`[Syscore] {RunService:IsClient() and "Client" or "Server"} Modules loaded in {loadTime} seconds`)
+		warn(`[Syscore] {RunService:IsClient() and "Client" or "Server"} Modules loaded in {string.format("%.6f", loadTime)} seconds`)
+		Syscore.LoadTime = loadTime
 	end
 
 	isInitialized = true
