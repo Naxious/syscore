@@ -6,6 +6,7 @@ local METHOD_TIMEOUT_SECONDS = 5
 --[=[
     @within Syscore
     @interface Syscore
+    .
 ]=]
 export type Syscore = {
 	Icon: string?,
@@ -102,9 +103,11 @@ local isInitialized = false
 
 --[=[
     @within Syscore
-    @prop ShowLoadOrder: boolean
-    ShowLoadOrder is a boolean that determines whether or not to show the load order of your modules.
-    This is useful for debugging purposes.
+    @prop ShowLoadOrder boolean
+    @tag Boolean
+
+    Determines whether or not to show the load order of your modules when initializing them.
+    This debug print is useful for debugging purposes.
     Default, this is set to true.
     ```lua
     local Syscore = require(path.to.Syscore)
